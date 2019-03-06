@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class FileCleaner {
+public class FileUtilsComponent {
 	/**
 	 * Reference: https://www.baeldung.com/java-delete-directory
 	 * 
@@ -24,7 +24,7 @@ public class FileCleaner {
 	 *
 	 */
 	private class Visitor implements FileVisitor<Path> {
-		public Visitor(Duration survivalPeriod) {
+		private Visitor(Duration survivalPeriod) {
 			super();
 			this.survivalPeriod = survivalPeriod;
 		}
@@ -69,7 +69,7 @@ public class FileCleaner {
 					Files.delete(dir);
 					log.info("Delete: " + dir.toString());
 				} else {
-					log.info("Dir is not empty: " + dir.toString());
+					log.debug("Dir is not empty: " + dir.toString());
 				}
 			} catch (IOException ignore) {
 				log.error(ignore.getMessage(), ignore);
@@ -93,8 +93,12 @@ public class FileCleaner {
 		}
 	}
 
-	public void retain(String startPathString, Duration survivalPeriod) throws IOException {
+	public void retain(String startPathString, Duration survivalPeriod) {
 		Path startPath = Paths.get(startPathString);
-		Files.walkFileTree(startPath, new Visitor(survivalPeriod));
+		try {
+			Files.walkFileTree(startPath, new Visitor(survivalPeriod));
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 }
